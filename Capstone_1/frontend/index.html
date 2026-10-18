@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UnityBank | Next-Gen Digital Banking & RBAC Core</title>
+  <meta name="description" content="Ultra-clean, minimalist fintech web application inspired by GoTyme Bank and Maya. Secure, RBAC-enabled, offline-capable, and integrated with an offline AI assistant.">
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js 4.4.1 Lightweight Charting Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: ['class', '[data-theme="dark"]'],
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#E6F7F1',
+              100: '#CEEFE3',
+              500: '#00B074',
+              600: '#009663',
+              700: '#006D48',
+              800: '#004D33'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Modern Clean Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-[#F8FAFC] text-slate-900 min-h-screen flex flex-col font-sans transition-colors duration-200">
+
+  <!-- =========================================================================
+       1. AUTHENTICATION & REGISTRATION SCREEN (Rendered if not signed in)
+       ========================================================================= -->
+  <section id="auth-screen" class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-[#0F172A] dark:to-slate-950">
+    <div class="w-full max-w-md clean-card p-6 sm:p-8 relative overflow-hidden">
+      
+      <!-- Top Decorative Accent -->
+      <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#00B074] via-emerald-400 to-sky-500"></div>
+
+      <!-- Brand Logo -->
+      <div class="flex flex-col items-center text-center mb-6 pt-2">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#00B074] to-[#00E599] flex items-center justify-center text-white font-black text-xl shadow-md mb-3">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          unity<span class="text-[#00B074]">bank</span>
+        </h1>
+        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+          Enterprise Digital Banking • RBAC Protected
+        </p>
+      </div>
+
+      <!-- Auth Mode Switcher (Log In vs Register) -->
+      <div class="segmented-pill w-full justify-between mb-6">
+        <button type="button" onclick="setAuthTab('login')" id="tab-btn-login" class="pill-item active flex-1 text-center py-2 font-bold">
+          <i class="fas fa-arrow-right-to-bracket mr-1.5 text-emerald-500"></i> Log In
+        </button>
+        <button type="button" onclick="setAuthTab('register')" id="tab-btn-register" class="pill-item flex-1 text-center py-2 font-bold">
+          <i class="fas fa-user-plus mr-1.5 text-sky-500"></i> Create Account
+        </button>
+      </div>
+
+      <!-- Error / Success Alert Box -->
+      <div id="auth-alert" class="hidden p-3 rounded-xl text-xs mb-4 flex items-start gap-2.5">
+        <i id="auth-alert-icon" class="fas fa-circle-exclamation mt-0.5"></i>
+        <span id="auth-alert-msg" class="flex-1 font-medium leading-relaxed"></span>
+      </div>
+
+      <!-- FORM 1: LOGIN -->
+      <form id="form-login" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Username</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-xs">
+              <i class="fas fa-user"></i>
+            </span>
+            <input type="text" id="login-username" class="input-clean pl-9" placeholder="e.g. customer or admin" required autocomplete="username">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-xs">
+              <i class="fas fa-lock"></i>
+            </span>
+            <input type="password" id="login-password" class="input-clean pl-9 pr-9" placeholder="••••••••" required autocomplete="current-password">
+            <button type="button" onclick="togglePasswordVisibility('login-password', 'login-pw-icon')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <i class="fas fa-eye text-xs" id="login-pw-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-login-submit" class="btn-primary w-full py-2.5 text-xs font-bold tracking-wide mt-2 flex items-center justify-center gap-2">
+          <i class="fas fa-arrow-right-to-bracket text-xs"></i>
+          <span>Log In to Core Banking</span>
+        </button>
+
+        <!-- Quick Demo Accounts Helper -->
+        <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
+          <div class="text-[11px] font-semibold text-slate-400 text-center mb-2.5">
+            Quick Persona Fill (Demo Profiles):
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-[11px]">
+            <button type="button" onclick="fillDemoCredentials('customer', 'Customer123!')" class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/80 dark:border-slate-800 text-left transition flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-[#00B074] flex items-center justify-center font-bold text-[10px]">C</span>
+              <div>
+                <div class="font-bold text-slate-800 dark:text-slate-200">Customer</div>
+                <div class="text-[9px] text-slate-400">Alex Morgan</div>
+              </div>
+            </button>
+
+            <button type="button" onclick="fillDemoCredentials('teller', 'Teller123!')" class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-sky-950/40 border border-slate-200/80 dark:border-slate-800 text-left transition flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-sky-100 dark:bg-sky-900/60 text-sky-600 flex items-center justify-center font-bold text-[10px]">T</span>
+              <div>
+                <div class="font-bold text-slate-800 dark:text-slate-200">Teller</div>
+                <div class="text-[9px] text-slate-400">Sarah Jenkins</div>
+              </div>
+            </button>
+
+            <button type="button" onclick="fillDemoCredentials('manager', 'Manager123!')" class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-purple-50 dark:hover:bg-purple-950/40 border border-slate-200/80 dark:border-slate-800 text-left transition flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-600 flex items-center justify-center font-bold text-[10px]">M</span>
+              <div>
+                <div class="font-bold text-slate-800 dark:text-slate-200">Manager</div>
+                <div class="text-[9px] text-slate-400">James Vance</div>
+              </div>
+            </button>
+
+            <button type="button" onclick="fillDemoCredentials('admin', 'Admin123!')" class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200/80 dark:border-slate-800 text-left transition flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-600 flex items-center justify-center font-bold text-[10px]">A</span>
+              <div>
+                <div class="font-bold text-slate-800 dark:text-slate-200">Sys Admin</div>
+                <div class="text-[9px] text-slate-400">Elena Rostova</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- FORM 2: REGISTRATION & ADMIN SIGN-UP -->
+      <form id="form-register" onsubmit="handleRegisterSubmit(event)" class="space-y-3.5 hidden">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Legal Name</label>
+          <input type="text" id="reg-fullname" class="input-clean" placeholder="e.g. Maya Santiago" required>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Username</label>
+            <input type="text" id="reg-username" class="input-clean" placeholder="maya.s" required>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Password</label>
+            <input type="password" id="reg-password" class="input-clean" placeholder="••••••••" required>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Email</label>
+            <input type="email" id="reg-email" class="input-clean" placeholder="name@domain.com" required>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Phone</label>
+            <input type="text" id="reg-phone" class="input-clean" placeholder="+1 (555) 012-3456">
+          </div>
+        </div>
+
+        <!-- Role Selector with System Admin Support -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            Institutional Role Assignment
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-center cursor-pointer hover:border-[#00B074] transition flex flex-col items-center gap-1">
+              <input type="radio" name="reg-role" value="CUSTOMER" checked onchange="handleRoleSelectChange('CUSTOMER')" class="hidden">
+              <i class="fas fa-user text-xs text-[#00B074]"></i>
+              <div class="font-bold text-xs text-slate-800 dark:text-slate-200">Customer</div>
+              <div class="text-[9px] text-slate-400">Personal Banking</div>
+            </label>
+
+            <label class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-center cursor-pointer hover:border-[#00B074] transition flex flex-col items-center gap-1">
+              <input type="radio" name="reg-role" value="TELLER" onchange="handleRoleSelectChange('TELLER')" class="hidden">
+              <i class="fas fa-cash-register text-xs text-sky-500"></i>
+              <div class="font-bold text-xs text-slate-800 dark:text-slate-200">Teller</div>
+              <div class="text-[9px] text-slate-400">Cash Operations</div>
+            </label>
+
+            <label class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-center cursor-pointer hover:border-[#00B074] transition flex flex-col items-center gap-1">
+              <input type="radio" name="reg-role" value="MANAGER" onchange="handleRoleSelectChange('MANAGER')" class="hidden">
+              <i class="fas fa-user-shield text-xs text-purple-500"></i>
+              <div class="font-bold text-xs text-slate-800 dark:text-slate-200">Manager</div>
+              <div class="text-[9px] text-slate-400">Credit & Approvals</div>
+            </label>
+
+            <label class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-center cursor-pointer hover:border-[#00B074] transition flex flex-col items-center gap-1">
+              <input type="radio" name="reg-role" value="SYSTEM_ADMIN" onchange="handleRoleSelectChange('SYSTEM_ADMIN')" class="hidden">
+              <i class="fas fa-cog text-xs text-rose-500"></i>
+              <div class="font-bold text-xs text-slate-800 dark:text-slate-200">System Admin</div>
+              <div class="text-[9px] text-slate-400">Platform Control</div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Conditional Field: Customer Initial Deposit -->
+        <div id="reg-customer-fields">
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Opening Checking Deposit ($ USD)</label>
+          <input type="number" id="reg-initial-deposit" class="input-clean font-mono" value="1000" min="0" step="50">
+          <p class="text-[10px] text-slate-400 mt-1">A new Checking account & contactless debit card will be provisioned instantly.</p>
+        </div>
+
+        <!-- Conditional Field: Admin Security Bootstrap Key -->
+        <div id="reg-admin-fields" class="hidden">
+          <label class="block text-xs font-semibold text-rose-600 dark:text-rose-400 mb-1 flex items-center gap-1.5">
+            <i class="fas fa-key"></i> Admin Security Bootstrap Key
+          </label>
+          <input type="password" id="reg-admin-key" class="input-clean font-mono border-rose-300 dark:border-rose-900" placeholder="Enter secure admin setup key">
+          <p class="text-[10px] text-slate-400 mt-1">
+            Default bootstrap key: <span class="font-mono text-emerald-600 font-bold">ADMIN-MASTER-2026</span>
+          </p>
+        </div>
+
+        <button type="submit" id="btn-register-submit" class="btn-primary w-full py-2.5 text-xs font-bold tracking-wide mt-2">
+          <span>Create Account & Provision Profile</span>
+          <i class="fas fa-check text-xs"></i>
+        </button>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-center">
+          <span class="text-xs text-slate-500 dark:text-slate-400">Already have an account? </span>
+          <button type="button" onclick="setAuthTab('login')" class="font-bold text-[#00B074] hover:underline underline-offset-2 ml-1 inline-flex items-center gap-1 text-xs">
+            <i class="fas fa-arrow-right-to-bracket text-[10px]"></i> Log In
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       2. AUTHENTICATED APPLICATION SHELL
+       ========================================================================= -->
+  <div id="app-shell" class="hidden flex-1 flex flex-col">
+    
+    <!-- Top Minimalist Navigation Bar -->
+    <header class="bg-white/80 dark:bg-[#131D33]/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 transition-colors">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        
+        <!-- Left: Brand Logo & Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-[#00B074] to-[#00E599] flex items-center justify-center text-white font-black text-base shadow-sm">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5 leading-none">
+              <span class="font-bold text-lg tracking-tight text-slate-900 dark:text-white">unity<span class="text-[#00B074]">bank</span></span>
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-[#00B074] border border-emerald-200 dark:border-emerald-800">
+                v3.5
+              </span>
+            </div>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Digital Banking & RBAC Engine</p>
+          </div>
+        </div>
+
+        <!-- Right: Online/Offline Toggle, Theme, User Profile & Prominent Log In / Log Out Buttons -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          
+          <!-- Online/Offline Mode Indicator & Switch -->
+          <div class="flex items-center gap-2">
+            <button onclick="toggleNetworkMode()" id="network-status-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 transition" title="Click to toggle Online / Offline simulation">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-online" id="network-pulse-dot"></span>
+              <span id="network-status-text">Online Sync</span>
+            </button>
+            <span id="offline-queue-count" class="hidden px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-300">
+              0 Queued
+            </span>
+          </div>
+
+          <!-- Dark / Light Theme Toggle -->
+          <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Toggle Light / Dark Mode">
+            <i class="fas fa-moon dark:hidden"></i>
+            <i class="fas fa-sun hidden dark:inline"></i>
+          </button>
+
+          <!-- User Profile Dropdown Pill -->
+          <div class="relative">
+            <button onclick="toggleUserDropdown()" class="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800 focus:outline-none">
+              <div id="user-avatar-badge" class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-[#00B074] font-bold text-xs flex items-center justify-center border border-emerald-200 dark:border-emerald-700">
+                UB
+              </div>
+              <div class="hidden sm:block text-left leading-tight">
+                <div id="user-display-name" class="font-semibold text-xs text-slate-800 dark:text-slate-200">Customer</div>
+                <div id="user-role-label" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">Customer</div>
+              </div>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400 ml-1"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div id="user-menu-dropdown" class="hidden absolute right-0 mt-2 w-56 clean-card p-2 shadow-xl z-50 text-xs">
+              <div class="px-3 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
+                <div class="font-bold text-slate-900 dark:text-white" id="dropdown-user-name">Alex Morgan</div>
+                <div class="text-[10px] text-slate-400" id="dropdown-user-email">alex.morgan@unitybank.io</div>
+                <div class="mt-1">
+                  <span id="dropdown-user-kyc" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-600 border border-emerald-200">
+                    TIER_2_VERIFIED
+                  </span>
+                </div>
+              </div>
+              <button onclick="openOfflineSyncModal()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <i class="fas fa-rotate text-sky-500"></i>
+                <span>Offline Storage Queue</span>
+              </button>
+              <button onclick="logout()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 font-semibold flex items-center gap-2 mt-1">
+                <i class="fas fa-arrow-right-to-bracket"></i>
+                <span>Log In Another Account</span>
+              </button>
+              <button onclick="logout()" class="w-full text-left px-3 py-2 rounded-lg bg-rose-50/70 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 font-bold flex items-center gap-2 mt-1">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Log Out</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Offline Queue Notification Banner (Appears when offline transactions are pending) -->
+    <div id="offline-sync-banner" class="hidden bg-amber-50 dark:bg-amber-950/60 border-b border-amber-200 dark:border-amber-900 px-4 py-2 text-xs text-amber-800 dark:text-amber-200">
+      <div class="max-w-6xl mx-auto flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-cloud-arrow-up text-amber-600 animate-pulse"></i>
+          <span><strong id="offline-banner-count">0</strong> offline transaction(s) pending reconciliation.</span>
+        </div>
+        <button onclick="triggerOfflineSync()" class="btn-primary py-1 px-3 text-[11px] bg-amber-600 hover:bg-amber-700 text-white">
+          <i class="fas fa-sync-alt mr-1"></i> Sync Now
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Dynamic Content Workspace -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+
+      <!-- =====================================================================
+           MODULE 1: CUSTOMER WORKSPACE (Accounts, Cards, Payments, Loans)
+           ===================================================================== -->
+      <section id="module-customer" class="space-y-6">
+        
+        <!-- Hero Balance Card (GoTyme Aesthetic) & Quick Action Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          
+          <div class="lg:col-span-7 hero-balance-card p-6 sm:p-8 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-semibold uppercase tracking-wider text-emerald-100">Total Liquid Cash</span>
+                  <button onclick="toggleBalanceVisibility()" id="btn-balance-eye" class="text-emerald-100 hover:text-white transition p-1" title="Hide/Show balance">
+                    <i class="fas fa-eye text-sm" id="eye-icon"></i>
+                  </button>
+                </div>
+                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-200 animate-pulse"></span> 4.85% p.a. High-Yield
+                </span>
+              </div>
+
+              <!-- Main Amount Display -->
+              <div class="mt-2 mb-4">
+                <div class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight font-mono" id="hero-total-balance">
+                  $0.00
+                </div>
+                <div class="text-xs text-emerald-100 mt-1 flex items-center gap-2">
+                  <span>Available Across Accounts</span>
+                  <span>•</span>
+                  <span class="font-bold text-white" id="hero-account-count">0 Active Accounts</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Bottom: User & Status -->
+            <div class="pt-4 border-t border-white/20 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-bold text-[10px]">
+                  <i class="fas fa-lock text-[10px]"></i>
+                </div>
+                <span class="font-medium text-emerald-50">AES-256 Ledger Vault</span>
+              </div>
+              <button onclick="openOpenAccountModal()" class="text-xs font-bold text-white hover:text-emerald-100 underline flex items-center gap-1">
+                <i class="fas fa-plus-circle text-xs"></i> Open New Account
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="lg:col-span-5 clean-card p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Fast Services</h3>
+                <span class="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-full">Zero Transfer Fees</span>
+              </div>
+
+              <div class="grid grid-cols-4 gap-3 text-center">
+                <button onclick="openTransferModal()" class="quick-action-btn">
+                  <div class="quick-action-icon text-[#00B074]">
+                    <i class="fas fa-paper-plane"></i>
+                  </div>
+                  <span class="quick-action-label">Send Money</span>
+                </button>
+
+                <button onclick="openCardsModal()" class="quick-action-btn">
+                  <div class="quick-action-icon text-sky-500">
+                    <i class="fas fa-credit-card"></i>
+                  </div>
+                  <span class="quick-action-label">My Cards</span>
+                </button>
+
+                <button onclick="openLoanModal()" class="quick-action-btn">
+                  <div class="quick-action-icon text-purple-500">
+                    <i class="fas fa-hand-holding-dollar"></i>
+                  </div>
+                  <span class="quick-action-label">Apply Loan</span>
+                </button>
+
+                <button onclick="toggleChatDrawer()" class="quick-action-btn">
+                  <div class="quick-action-icon text-emerald-600">
+                    <i class="fas fa-robot"></i>
+                  </div>
+                  <span class="quick-action-label">Offline AI</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- KYC Tier Verification Status Pill -->
+            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+              <span class="text-slate-400">Identity Clearance</span>
+              <span id="cust-kyc-badge" class="font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+                Verified
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Accounts Grid -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="fas fa-wallet text-[#00B074]"></i> Deposit Accounts & Vaults
+            </h3>
+            <button onclick="openOpenAccountModal()" class="btn-secondary text-xs py-1.5 px-3">
+              <i class="fas fa-plus mr-1"></i> Add Account
+            </button>
+          </div>
+
+          <div id="customer-accounts-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- Recent Transactions Table -->
+        <div class="clean-card p-6">
+          <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fas fa-receipt text-slate-400"></i> Account Activity & Statement
+              </h3>
+              <p class="text-xs text-slate-400">Live ledger transaction records with immutable audit verification</p>
+            </div>
+            
+            <button onclick="fetchAllData()" class="btn-secondary text-xs py-1 px-2.5">
+              <i class="fas fa-refresh mr-1"></i> Refresh
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/40">
+                <tr>
+                  <th class="py-2.5 px-3">Reference</th>
+                  <th class="py-2.5 px-3">Date & Time</th>
+                  <th class="py-2.5 px-3">Description / Recipient</th>
+                  <th class="py-2.5 px-3">Channel</th>
+                  <th class="py-2.5 px-3 text-right">Amount ($)</th>
+                  <th class="py-2.5 px-3 text-center">Status</th>
+                  <th class="py-2.5 px-3 text-right">Receipt</th>
+                </tr>
+              </thead>
+              <tbody id="customer-txns-tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- =====================================================================
+           MODULE 2: TELLER WORKSTATION (Cash Desk, KYC, Receipts, Offline Sync)
+           ===================================================================== -->
+      <section id="module-teller" class="space-y-6 hidden">
+        
+        <!-- Teller Workstation Header -->
+        <div class="clean-card p-6 bg-gradient-to-r from-sky-900 to-slate-900 text-white rounded-2xl relative overflow-hidden">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span class="text-[11px] font-bold tracking-wider uppercase text-sky-400 bg-sky-950 px-2.5 py-0.5 rounded-full border border-sky-500/30">
+                Teller Workstation • Cash Desk Operations
+              </span>
+              <h2 class="text-2xl font-extrabold text-white mt-2">Over-The-Counter Cash Vault</h2>
+              <p class="text-xs text-slate-300 mt-1 max-w-xl">
+                Process customer physical cash deposits, OTC withdrawals, identity KYC upgrades, and print digital transaction vouchers. Works seamlessly offline.
+              </p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="triggerOfflineSync()" class="btn-primary py-2 px-3 text-xs bg-sky-500 hover:bg-sky-600">
+                <i class="fas fa-rotate"></i> Sync Offline Queue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- OTC Cash Operation Form -->
+          <div class="clean-card p-6">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+              <i class="fas fa-money-bill-wave text-emerald-500"></i> Over-The-Counter Cash Desk
+            </h3>
+
+            <form onsubmit="handleTellerCashOperation(event)" class="space-y-4 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Operation Type</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <label class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-center cursor-pointer hover:border-[#00B074] transition">
+                    <input type="radio" name="teller-op" value="DEPOSIT" checked class="hidden">
+                    <div class="font-bold text-[#00B074]">Cash Deposit</div>
+                    <div class="text-[10px] text-slate-400">Credit Account</div>
+                  </label>
+                  <label class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-center cursor-pointer hover:border-[#00B074] transition">
+                    <input type="radio" name="teller-op" value="WITHDRAWAL" class="hidden">
+                    <div class="font-bold text-rose-500">Cash Withdrawal</div>
+                    <div class="text-[10px] text-slate-400">Disburse Notes</div>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Target Account Number</label>
+                <input type="text" id="teller-acc-number" placeholder="UB-CHK-2026-XXXX" class="input-clean font-mono font-bold" required>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Amount ($ USD)</label>
+                <input type="number" id="teller-amount" min="1" step="0.01" placeholder="500.00" class="input-clean font-mono font-bold text-base" required>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Teller Memo / Purpose</label>
+                <input type="text" id="teller-notes" placeholder="Over-the-counter physical cash transaction" class="input-clean">
+              </div>
+
+              <button type="submit" class="btn-primary w-full py-2.5 text-xs font-bold">
+                <i class="fas fa-check-circle"></i> Commit Cash Transaction & Issue Receipt
+              </button>
+            </form>
+          </div>
+
+          <!-- KYC Verification Desk -->
+          <div class="clean-card p-6">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+              <i class="fas fa-id-card text-sky-500"></i> Customer Identity & KYC Verification
+            </h3>
+
+            <form onsubmit="handleTellerVerifyCustomer(event)" class="space-y-4 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Account Number</label>
+                <input type="text" id="teller-verify-acc" placeholder="UB-CHK-2026-XXXX" class="input-clean font-mono" required>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">ID Document Type</label>
+                  <select id="teller-id-type" class="input-clean font-medium">
+                    <option value="Passport">International Passport</option>
+                    <option value="National ID">National ID Card</option>
+                    <option value="Driver License">Driver's License</option>
+                    <option value="Postal ID">Postal ID</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">ID Serial Number</label>
+                  <input type="text" id="teller-id-number" placeholder="P-8891240A" class="input-clean font-mono" required>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-secondary w-full py-2.5 text-xs font-bold text-sky-600 dark:text-sky-400">
+                <i class="fas fa-user-check"></i> Verify Customer & Upgrade to Tier 3
+              </button>
+            </form>
+
+            <!-- Customer Lookup Result Container -->
+            <div id="teller-verify-result" class="hidden mt-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
+              <div class="font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
+                <span id="lookup-customer-name">Alex Morgan</span>
+                <span id="lookup-customer-kyc" class="text-[10px] text-emerald-600 font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950">Verified</span>
+              </div>
+              <div class="text-[11px] text-slate-500" id="lookup-customer-contact">email@domain.com</div>
+              <div class="font-mono text-emerald-600 font-bold" id="lookup-customer-balance">Balance: $0.00</div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- =====================================================================
+           MODULE 3: MANAGER WORKSTATION (High-Value Approvals & Credit Reviews)
+           ===================================================================== -->
+      <section id="module-manager" class="space-y-6 hidden">
+        
+        <div class="clean-card p-6 bg-gradient-to-r from-purple-950 via-slate-900 to-slate-950 text-white rounded-2xl">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span class="text-[11px] font-bold tracking-wider uppercase text-purple-400 bg-purple-950 px-2.5 py-0.5 rounded-full border border-purple-500/30">
+                Manager Workstation • Executive Clearance
+              </span>
+              <h2 class="text-2xl font-extrabold text-white mt-2">Dual-Control Compliance & Risk Review</h2>
+              <p class="text-xs text-slate-300 mt-1 max-w-xl">
+                Authorize high-value wires exceeding the institutional threshold ($10,000+) and adjudicate borrower credit applications.
+              </p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md p-3 rounded-xl border border-white/10 text-right">
+              <div class="text-[11px] text-slate-300">Pending Review</div>
+              <div class="text-2xl font-bold font-mono text-amber-400 mt-0.5" id="manager-pending-badge">0 Items</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Transactions Table -->
+        <div class="clean-card p-6">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fas fa-file-shield text-amber-500"></i> High-Value Transaction Approvals
+              </h3>
+              <p class="text-xs text-slate-400">Dual-control authorization required before debit/credit execution</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/40">
+                <tr>
+                  <th class="py-2.5 px-3">Ref No</th>
+                  <th class="py-2.5 px-3">Source & Dest</th>
+                  <th class="py-2.5 px-3">Recipient</th>
+                  <th class="py-2.5 px-3">Channel</th>
+                  <th class="py-2.5 px-3">Amount ($)</th>
+                  <th class="py-2.5 px-3">Risk Score</th>
+                  <th class="py-2.5 px-3 text-right">Manager Action</th>
+                </tr>
+              </thead>
+              <tbody id="manager-txns-tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pending Loan Applications Table -->
+        <div class="clean-card p-6">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fas fa-hand-holding-dollar text-purple-500"></i> Credit & Loan Facilities Under Review
+              </h3>
+              <p class="text-xs text-slate-400">Automated FICO credit scoring and risk grading</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/40">
+                <tr>
+                  <th class="py-2.5 px-3">Loan Ref</th>
+                  <th class="py-2.5 px-3">Borrower Name</th>
+                  <th class="py-2.5 px-3">Facility Type</th>
+                  <th class="py-2.5 px-3">Principal</th>
+                  <th class="py-2.5 px-3">FICO Score</th>
+                  <th class="py-2.5 px-3">Risk Grade</th>
+                  <th class="py-2.5 px-3 text-right">Adjudication</th>
+                </tr>
+              </thead>
+              <tbody id="manager-loans-tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- =====================================================================
+           MODULE 4: SYSTEM ADMIN WORKSPACE & SYSTEM SETTINGS
+           ===================================================================== -->
+      <section id="module-admin" class="space-y-6 hidden">
+        
+        <!-- Admin Banner -->
+        <div class="clean-card p-6 sm:p-8 bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white rounded-2xl relative overflow-hidden">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span class="text-[11px] font-bold tracking-wider uppercase text-sky-400 bg-sky-950 px-2.5 py-0.5 rounded-full border border-sky-500/30">
+                System Administrator Console
+              </span>
+              <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">Core Platform Health & Governance</h2>
+              <p class="text-xs text-slate-300 mt-1 max-w-xl">
+                Real-time server telemetry, user permission matrix, cryptographic audit trail, and institutional settings panel.
+              </p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 text-right">
+              <div class="text-[11px] text-slate-300">Cluster Uptime</div>
+              <div class="text-2xl font-bold font-mono text-emerald-400 mt-0.5" id="admin-uptime-val">99.99%</div>
+              <div class="text-[10px] text-slate-300">Optimal Performance</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telemetry Metric Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="clean-card p-4">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase">API Gateway TPS</div>
+            <div class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1" id="admin-tps-val">64.2 req/s</div>
+            <div class="text-[10px] text-emerald-600 font-medium mt-1">Optimal load</div>
+          </div>
+          <div class="clean-card p-4">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase">CPU Utilization</div>
+            <div class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1" id="admin-cpu-val">16.4%</div>
+            <div class="text-[10px] text-slate-400 mt-1">Multi-cloud cluster</div>
+          </div>
+          <div class="clean-card p-4">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase">Database Latency</div>
+            <div class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1" id="admin-latency-val">0.92 ms</div>
+            <div class="text-[10px] text-slate-400 mt-1">Atomic persistence</div>
+          </div>
+          <div class="clean-card p-4">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase">High-Value Threshold</div>
+            <div class="text-2xl font-bold text-amber-500 font-mono mt-1" id="admin-thresh-val">$10,000.00</div>
+            <div class="text-[10px] text-slate-400 mt-1">Dual-control enabled</div>
+          </div>
+        </div>
+
+        <!-- Side-Aligned Admin Module Dropdown (Replaces horizontal bar) -->
+        <div class="flex flex-wrap items-center justify-between gap-4 py-2 border-b border-slate-200 dark:border-slate-800/80 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/70 text-[#00B074] flex items-center justify-center font-bold text-xs shadow-sm">
+              <i class="fas fa-chart-line" id="admin-module-indicator-icon"></i>
+            </div>
+            <div>
+              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Workspace View</div>
+              <div class="text-sm font-extrabold text-slate-900 dark:text-white" id="admin-active-view-name">Analytics & Health</div>
+            </div>
+          </div>
+
+          <!-- On the side: Drop-Down Module Switcher -->
+          <div class="relative ml-auto" id="admin-module-dropdown-container">
+            <button type="button" onclick="toggleAdminModuleDropdown(event)" id="admin-module-dropdown-btn" class="flex items-center justify-between gap-3 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm hover:border-[#00B074] dark:hover:border-[#00B074] transition text-xs font-bold text-slate-800 dark:text-slate-100 min-w-[240px]">
+              <span class="flex items-center gap-2" id="admin-selected-module-label">
+                <i class="fas fa-chart-line text-emerald-500"></i>
+                <span>Analytics & Health</span>
+              </span>
+              <i class="fas fa-chevron-down text-slate-400 text-xs transition-transform duration-200" id="admin-dropdown-caret"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div id="admin-module-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 clean-card p-1.5 shadow-2xl z-50 text-xs border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131D33] rounded-xl space-y-1">
+              <button type="button" onclick="setAdminTab('analytics')" class="admin-dropdown-opt w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-200 font-semibold transition" data-tab="analytics">
+                <i class="fas fa-chart-line text-emerald-500 w-4 text-center"></i>
+                <div class="flex-1">
+                  <div class="font-bold text-slate-900 dark:text-white text-xs">Analytics & Health</div>
+                  <div class="text-[10px] text-slate-400 font-normal">Live telemetry & performance metrics</div>
+                </div>
+              </button>
+
+              <button type="button" onclick="setAdminTab('forecasts')" class="admin-dropdown-opt w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 font-semibold transition" data-tab="forecasts">
+                <i class="fas fa-wand-magic-sparkles text-purple-500 w-4 text-center"></i>
+                <div class="flex-1">
+                  <div class="font-bold text-slate-900 dark:text-white text-xs">Forecasts & Insights</div>
+                  <div class="text-[10px] text-slate-400 font-normal">30/60/90-day predictive AI</div>
+                </div>
+              </button>
+
+              <button type="button" onclick="setAdminTab('users')" class="admin-dropdown-opt w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-200 font-semibold transition" data-tab="users">
+                <i class="fas fa-users-gear text-sky-500 w-4 text-center"></i>
+                <div class="flex-1">
+                  <div class="font-bold text-slate-900 dark:text-white text-xs">RBAC Users Matrix</div>
+                  <div class="text-[10px] text-slate-400 font-normal">Manage roles & permissions</div>
+                </div>
+              </button>
+
+              <button type="button" onclick="setAdminTab('settings')" class="admin-dropdown-opt w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-700 dark:text-slate-200 font-semibold transition" data-tab="settings">
+                <i class="fas fa-sliders text-amber-500 w-4 text-center"></i>
+                <div class="flex-1">
+                  <div class="font-bold text-slate-900 dark:text-white text-xs">System Settings</div>
+                  <div class="text-[10px] text-slate-400 font-normal">Core banking parameters</div>
+                </div>
+              </button>
+
+              <button type="button" onclick="setAdminTab('audit')" class="admin-dropdown-opt w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-700 dark:text-slate-200 font-semibold transition" data-tab="audit">
+                <i class="fas fa-fingerprint text-rose-500 w-4 text-center"></i>
+                <div class="flex-1">
+                  <div class="font-bold text-slate-900 dark:text-white text-xs">Audit Trail</div>
+                  <div class="text-[10px] text-slate-400 font-normal">Cryptographic immutable logs</div>
+                </div>
+              </button>
+
+              <button type="button" onclick="setAdminTab('db')" class="admin-dropdown-opt w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold transition" data-tab="db">
+                <i class="fas fa-database text-slate-400 w-4 text-center"></i>
+                <div class="flex-1">
+                  <div class="font-bold text-slate-900 dark:text-white text-xs">Database Diagnostics</div>
+                  <div class="text-[10px] text-slate-400 font-normal">Integrity checks & VACUUM</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- =====================================================================
+             ADMIN VIEW 1: SYSTEM ANALYTICS & REAL-TIME HEALTH MONITORING
+             ===================================================================== -->
+        <div id="admin-view-analytics" class="space-y-6">
+
+          <!-- Live Status Bar -->
+          <div class="clean-card p-4 flex flex-wrap items-center justify-between gap-4 bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-500/20">
+            <div class="flex items-center gap-3">
+              <span class="relative flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              </span>
+              <div>
+                <div class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>Live System Telemetry Active</span>
+                  <span class="text-[10px] bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider">Polled 10s</span>
+                </div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" id="analytics-last-updated">Synchronizing with multi-cloud nodes...</div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <div class="text-right hidden sm:block">
+                <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Threat Level</div>
+                <div class="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono" id="analytics-threat-level">NOMINAL</div>
+              </div>
+              <button onclick="fetchAdminAnalytics(true)" class="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5" title="Force refresh live metrics">
+                <i class="fas fa-rotate" id="analytics-refresh-icon"></i>
+                <span>Refresh Now</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Real-Time Activity & Core Performance Metric Cards -->
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            
+            <!-- Metric 1: Total & Active Users -->
+            <div class="clean-card p-4 relative overflow-hidden">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <span>Active Users</span>
+                <i class="fas fa-users text-sky-500 text-xs"></i>
+              </div>
+              <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1" id="stat-active-users">--</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+                <span id="stat-total-users" class="font-semibold text-slate-700 dark:text-slate-300">-- total</span>
+                <span>•</span>
+                <span id="stat-verified-pct" class="text-emerald-600 font-medium">--% KYC</span>
+              </div>
+            </div>
+
+            <!-- Metric 2: 24h Transaction Volume -->
+            <div class="clean-card p-4 relative overflow-hidden">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <span>24h Inflow / Outflow</span>
+                <i class="fas fa-arrows-rotate text-emerald-500 text-xs"></i>
+              </div>
+              <div class="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1" id="stat-inflow-24h">+$0.00</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+                <span id="stat-outflow-24h" class="text-rose-500 font-mono font-medium">-$0.00</span>
+                <span>•</span>
+                <span id="stat-tx-count-24h" class="font-medium">0 txns</span>
+              </div>
+            </div>
+
+            <!-- Metric 3: Cluster Uptime -->
+            <div class="clean-card p-4 relative overflow-hidden">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <span>Cluster Uptime</span>
+                <i class="fas fa-shield-heart text-purple-500 text-xs"></i>
+              </div>
+              <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1" id="stat-cluster-uptime">99.99%</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1 font-mono">
+                <span id="stat-active-region" class="truncate">AWS ap-southeast</span>
+              </div>
+            </div>
+
+            <!-- Metric 4: DB Latency & Atomic Persistence -->
+            <div class="clean-card p-4 relative overflow-hidden">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <span>DB Query Latency</span>
+                <i class="fas fa-database text-amber-500 text-xs"></i>
+              </div>
+              <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1" id="stat-db-latency">0.85 ms</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+                <span class="text-emerald-600 font-medium">SQLite WAL mode</span>
+              </div>
+            </div>
+
+            <!-- Metric 5: Security Exceptions / Logs -->
+            <div class="clean-card p-4 relative overflow-hidden col-span-2 md:col-span-1">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <span>Exception Logs</span>
+                <i class="fas fa-triangle-exclamation text-rose-500 text-xs"></i>
+              </div>
+              <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1" id="stat-exceptions-count">0</div>
+              <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">
+                <span>Zero Critical Faults</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Interactive Charts Row: Transaction Trend (Line) + Loan Portfolio (Doughnut) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Chart 1: Transaction Flow & Volume Trend Line Chart (8 cols) -->
+            <div class="clean-card p-6 lg:col-span-8 flex flex-col justify-between">
+              <div class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fas fa-chart-area text-emerald-500"></i> 
+                    <span>Transaction Flow & Liquidity Dynamics</span>
+                  </h3>
+                  <p class="text-xs text-slate-400 mt-0.5">Historical daily inflow, outflow, and net gross volume recorded in SQLite ledger</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Inflow
+                  </span>
+                  <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 ml-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Outflow
+                  </span>
+                  <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 ml-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> Net Volume
+                  </span>
+                </div>
+              </div>
+
+              <!-- Canvas Container -->
+              <div class="relative w-full h-[280px]">
+                <canvas id="chart-transaction-trend"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 2: Loan & Financial Status Doughnut Chart (4 cols) -->
+            <div class="clean-card p-6 lg:col-span-4 flex flex-col justify-between">
+              <div class="mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <i class="fas fa-chart-pie text-purple-500"></i> 
+                  <span>Credit Facilities Breakdown</span>
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">Loan portfolio status and institutional risk distribution</p>
+              </div>
+
+              <!-- Doughnut Canvas Container -->
+              <div class="relative w-full h-[200px] flex items-center justify-center">
+                <canvas id="chart-loan-portfolio"></canvas>
+              </div>
+
+              <!-- Mini Status Breakdown Legend Cards -->
+              <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2 text-center">
+                <div class="p-2 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30">
+                  <div class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase">Approved</div>
+                  <div class="text-sm font-black font-mono text-emerald-800 dark:text-emerald-300 mt-0.5" id="loan-stat-approved-val">--</div>
+                </div>
+                <div class="p-2 rounded-lg bg-amber-50/60 dark:bg-amber-950/30">
+                  <div class="text-[10px] text-amber-700 dark:text-amber-400 font-bold uppercase">Pending</div>
+                  <div class="text-sm font-black font-mono text-amber-800 dark:text-amber-300 mt-0.5" id="loan-stat-pending-val">--</div>
+                </div>
+                <div class="p-2 rounded-lg bg-rose-50/60 dark:bg-rose-950/30">
+                  <div class="text-[10px] text-rose-700 dark:text-rose-400 font-bold uppercase">Default / Rej</div>
+                  <div class="text-sm font-black font-mono text-rose-800 dark:text-rose-300 mt-0.5" id="loan-stat-default-val">--</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Interactive Chart 3: User Growth & Active Daily Users Bar Chart -->
+          <div class="clean-card p-6">
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <i class="fas fa-chart-column text-sky-500"></i>
+                  <span>Institutional User Growth Cohorts</span>
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">New customer registrations vs active daily transacting users across recent weekly cohorts</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                  <span class="w-2.5 h-2.5 rounded-sm bg-sky-500"></span> New Registrations
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 ml-2">
+                  <span class="w-2.5 h-2.5 rounded-sm bg-indigo-500"></span> Active Daily Users
+                </span>
+              </div>
+            </div>
+
+            <!-- Bar Chart Canvas -->
+            <div class="relative w-full h-[220px]">
+              <canvas id="chart-user-growth"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- =====================================================================
+             ADMIN VIEW 2: PREDICTIVE ANALYTICS & DECISION-MAKING FORECASTS
+             ===================================================================== -->
+        <div id="admin-view-forecasts" class="space-y-6 hidden">
+
+          <!-- Forecast Header & Horizon Controls -->
+          <div class="clean-card p-6 bg-gradient-to-r from-purple-950/40 via-slate-900 to-indigo-950/40 border border-purple-500/20">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <span class="text-[11px] font-bold tracking-wider uppercase text-purple-400 bg-purple-950 px-2.5 py-0.5 rounded-full border border-purple-500/30">
+                  Predictive Intelligence Engine
+                </span>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-white mt-2">Forward-Looking Liquidity & Volume Projections</h3>
+                <p class="text-xs text-slate-300 mt-1 max-w-2xl">
+                  Statistical models (Ordinary Least Squares regression & 7-day exponential moving averages) evaluate historical SQLite ledger velocity to generate 30, 60, and 90-day trajectory forecasts with 95% Gaussian confidence bounds.
+                </p>
+              </div>
+
+              <!-- Horizon Selectors -->
+              <div class="flex items-center gap-1.5 p-1 bg-slate-900/80 rounded-xl border border-white/10">
+                <button type="button" onclick="switchForecastHorizon(30)" id="forecast-pill-30" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-purple-600 text-white shadow-sm">
+                  30-Day Forecast
+                </button>
+                <button type="button" onclick="switchForecastHorizon(60)" id="forecast-pill-60" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">
+                  60-Day Forecast
+                </button>
+                <button type="button" onclick="switchForecastHorizon(90)" id="forecast-pill-90" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">
+                  90-Day Forecast
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Predictive Summary Metric Cards -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            
+            <div class="clean-card p-4">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Projected Total Volume</div>
+              <div class="text-2xl font-black text-purple-600 dark:text-purple-400 font-mono mt-1" id="forecast-total-vol">--</div>
+              <div class="text-[11px] text-emerald-600 font-medium mt-1 flex items-center gap-1">
+                <i class="fas fa-arrow-trend-up"></i>
+                <span id="forecast-delta-pct">+18.5% projected delta</span>
+              </div>
+            </div>
+
+            <div class="clean-card p-4">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Estimated Net Liquidity</div>
+              <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1" id="forecast-net-liquidity">--</div>
+              <div class="text-[11px] text-slate-400 mt-1">Expected capital surplus</div>
+            </div>
+
+            <div class="clean-card p-4">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Predicted Peak Day</div>
+              <div class="text-xl font-bold text-slate-900 dark:text-white font-mono mt-1" id="forecast-peak-day">Day 22 (Month-End)</div>
+              <div class="text-[11px] text-amber-500 font-mono mt-1" id="forecast-peak-vol">Peak: $0.00</div>
+            </div>
+
+            <div class="clean-card p-4">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Peak Gateway TPS</div>
+              <div class="text-2xl font-black text-sky-600 dark:text-sky-400 font-mono mt-1" id="forecast-peak-tps">84.2 req/s</div>
+              <div class="text-[11px] text-slate-400 mt-1">Cluster scaling headroom: ~74%</div>
+            </div>
+
+          </div>
+
+          <!-- Visual Forecast Chart (Actual vs Projection vs 95% Confidence Bounds) -->
+          <div class="clean-card p-6">
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <i class="fas fa-bezier-curve text-purple-500"></i>
+                  <span>Statistical Forecast Trajectory & Confidence Boundaries</span>
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">Seamless historical actuals transitioning into OLS trend projections with $\pm 95\%$ confidence intervals</p>
+              </div>
+
+              <div class="flex items-center gap-3 text-[11px] font-semibold">
+                <span class="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                  <span class="w-3 h-0.5 bg-slate-400"></span> Historical Actuals
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
+                  <span class="w-3 h-0.5 bg-purple-500"></span> Predicted Trend
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-slate-400">
+                  <span class="w-3 h-2 bg-purple-500/20 rounded"></span> 95% Confidence Band
+                </span>
+              </div>
+            </div>
+
+            <!-- Forecast Canvas -->
+            <div class="relative w-full h-[320px]">
+              <canvas id="chart-forecast-trend"></canvas>
+            </div>
+          </div>
+
+          <!-- Actionable Executive Decision-Making Recommendations -->
+          <div>
+            <div class="mb-3">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fas fa-lightbulb text-amber-500"></i>
+                <span>Automated Executive Decision-Making Recommendations</span>
+              </h3>
+              <p class="text-xs text-slate-400">Heuristic recommendations derived algorithmically from forward-looking forecast trends</p>
+            </div>
+
+            <div id="forecast-recommendations-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ADMIN TAB 3: USERS & RBAC MATRIX -->
+        <div id="admin-view-users" class="clean-card p-6 hidden">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fas fa-users-gear text-sky-500"></i> Active Institutional Users & RBAC Matrix
+              </h3>
+              <p class="text-xs text-slate-400">Reassign roles and oversee institutional permissions</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/40">
+                <tr>
+                  <th class="py-2.5 px-3">ID</th>
+                  <th class="py-2.5 px-3">Full Name & Username</th>
+                  <th class="py-2.5 px-3">Email</th>
+                  <th class="py-2.5 px-3">KYC Tier</th>
+                  <th class="py-2.5 px-3">Current Role</th>
+                  <th class="py-2.5 px-3 text-right">Reassign Role</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB 2: COMPREHENSIVE SYSTEM SETTINGS -->
+        <div id="admin-view-settings" class="space-y-6 hidden">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Category 1: Core Banking Parameters -->
+            <div class="clean-card p-6 space-y-4">
+              <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                <i class="fas fa-vault text-emerald-500"></i> Core Banking Parameters
+              </h4>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">High-Value Approval Threshold ($ USD)</label>
+                <div class="flex gap-2">
+                  <input type="number" id="setting-high-val" class="input-clean font-mono text-xs" value="10000.0">
+                  <button onclick="saveConfigParam('high_value_approval_threshold', 'setting-high-val')" class="btn-primary text-xs py-2 px-3">Save</button>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1">Transfers $\ge$ this limit automatically queue for Manager authorization.</p>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Default Daily Card Spending Limit ($)</label>
+                <div class="flex gap-2">
+                  <input type="number" id="setting-card-limit" class="input-clean font-mono text-xs" value="10000.0">
+                  <button onclick="saveConfigParam('daily_default_card_limit', 'setting-card-limit')" class="btn-primary text-xs py-2 px-3">Save</button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Admin Security Bootstrap Key</label>
+                <div class="flex gap-2">
+                  <input type="text" id="setting-admin-key" class="input-clean font-mono text-xs" value="ADMIN-MASTER-2026">
+                  <button onclick="saveConfigParam('admin_bootstrap_key', 'setting-admin-key')" class="btn-primary text-xs py-2 px-3">Save</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category 2: Security & Policy Toggles -->
+            <div class="clean-card p-6 space-y-4">
+              <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                <i class="fas fa-shield-halved text-sky-500"></i> Security Configurations
+              </h4>
+
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+                <div>
+                  <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Dual-Control Manager Approval</div>
+                  <div class="text-[10px] text-slate-400">Enforce dual review for high-value transactions</div>
+                </div>
+                <label class="switch-toggle">
+                  <input type="checkbox" id="toggle-dual-control" checked onchange="toggleSecuritySetting('dual_control_approval', this.checked)">
+                  <span class="slider-toggle"></span>
+                </label>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+                <div>
+                  <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Fraud Detection Engine</div>
+                  <div class="text-[10px] text-slate-400">Automated heuristic risk scoring (0-100)</div>
+                </div>
+                <label class="switch-toggle">
+                  <input type="checkbox" id="toggle-fraud-engine" checked onchange="toggleSecuritySetting('fraud_detection_engine', this.checked)">
+                  <span class="slider-toggle"></span>
+                </label>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+                <div>
+                  <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Enforce Biometric Tier-3 for SWIFT</div>
+                  <div class="text-[10px] text-slate-400">Require physical verification for wires</div>
+                </div>
+                <label class="switch-toggle">
+                  <input type="checkbox" id="toggle-biometric-kyc" onchange="toggleSecuritySetting('biometric_kyc_enforced', this.checked)">
+                  <span class="slider-toggle"></span>
+                </label>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+                <div>
+                  <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Maintenance Mode</div>
+                  <div class="text-[10px] text-slate-400">Restrict write actions to System Admins only</div>
+                </div>
+                <label class="switch-toggle">
+                  <input type="checkbox" id="toggle-maintenance" onchange="toggleSecuritySetting('maintenance_mode', this.checked)">
+                  <span class="slider-toggle"></span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Category 3: Infrastructure & AI Bridge Parameters -->
+          <div class="clean-card p-6 space-y-4">
+            <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+              <i class="fas fa-network-wired text-purple-500"></i> Infrastructure & Offline AI Bridge
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Local Ollama Bridge Endpoint</label>
+                <div class="flex gap-2">
+                  <input type="text" id="setting-ollama-url" class="input-clean font-mono text-xs" value="http://127.0.0.1:11434">
+                  <button onclick="saveConfigParam('ollama_endpoint', 'setting-ollama-url')" class="btn-primary text-xs py-2 px-3">Save</button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Offline AI Model Preference</label>
+                <div class="flex gap-2">
+                  <input type="text" id="setting-ollama-model" class="input-clean font-mono text-xs" value="phi4-mini">
+                  <button onclick="saveConfigParam('ollama_model', 'setting-ollama-model')" class="btn-primary text-xs py-2 px-3">Save</button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Cloud Deployment Provider</label>
+                <div class="flex gap-2">
+                  <input type="text" id="setting-cloud-prov" class="input-clean text-xs" value="AWS us-east-1 / Azure EastUS">
+                  <button onclick="saveConfigParam('cloud_provider', 'setting-cloud-prov')" class="btn-primary text-xs py-2 px-3">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ADMIN TAB 3: AUDIT TRAIL -->
+        <div id="admin-view-audit" class="clean-card p-6 hidden">
+          <div class="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fas fa-fingerprint text-rose-500"></i> Cryptographic Security Audit Trail
+              </h3>
+              <p class="text-xs text-slate-400">Immutable ledger trail with SHA-256 signature verification</p>
+            </div>
+            
+            <input type="text" id="audit-filter-input" oninput="filterAuditLogs(this.value)" placeholder="Search action, actor, or entity..." class="input-clean text-xs max-w-xs">
+          </div>
+
+          <div class="overflow-x-auto max-h-96 overflow-y-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/40 sticky top-0">
+                <tr>
+                  <th class="py-2 px-3">Timestamp</th>
+                  <th class="py-2 px-3">Actor & Role</th>
+                  <th class="py-2 px-3">Action Type</th>
+                  <th class="py-2 px-3">Target Entity</th>
+                  <th class="py-2 px-3">Details</th>
+                  <th class="py-2 px-3 font-mono">Signature Hash</th>
+                </tr>
+              </thead>
+              <tbody id="admin-audit-tbody" class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-[11px]">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB 4: DATABASE MAINTENANCE -->
+        <div id="admin-view-db" class="clean-card p-6 space-y-6 hidden">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fas fa-database text-sky-500"></i> SQLite Core Database Diagnostics & Maintenance
+              </h3>
+              <p class="text-xs text-slate-400">Disk allocation, atomic integrity checks, and table row statistics</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="runDbMaintenance('CHECK')" class="btn-secondary text-xs py-1.5 px-3">
+                <i class="fas fa-check-double mr-1"></i> Check Integrity
+              </button>
+              <button onclick="runDbMaintenance('VACUUM')" class="btn-primary text-xs py-1.5 px-3">
+                <i class="fas fa-broom mr-1"></i> Run VACUUM
+              </button>
+            </div>
+          </div>
+
+          <div id="db-stats-container" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- =========================================================================
+       3. FLOATING 100% OFFLINE CONCIERGE AI CHAT DRAWER
+       ========================================================================= -->
+  <div class="fixed bottom-6 right-6 z-30">
+    <button onclick="toggleChatDrawer()" id="btn-floating-chat" class="w-14 h-14 rounded-full bg-[#00B074] hover:bg-[#009663] text-white shadow-xl flex items-center justify-center text-xl transition transform hover:scale-105" title="Offline AI Concierge">
+      <i class="fas fa-robot"></i>
+    </button>
+  </div>
+
+  <!-- Chat Drawer Panel -->
+  <div id="chat-drawer" class="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-32px)] clean-card p-4 shadow-2xl z-40 hidden flex-col h-[500px] border border-slate-200 dark:border-slate-700">
+    
+    <!-- Drawer Header -->
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950 text-[#00B074] flex items-center justify-center text-sm shadow-sm">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div>
+          <h4 class="font-bold text-xs text-slate-800 dark:text-white flex items-center gap-1.5">
+            Unity Concierge AI
+            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">100% Offline</span>
+          </h4>
+          <span class="text-[10px] text-slate-400 font-medium" id="ai-engine-label">Local Reasoning Engine</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-1">
+        <button onclick="clearChatMessages()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-1" title="Clear Chat History">
+          <i class="fas fa-trash-can"></i>
+        </button>
+        <button onclick="toggleChatDrawer()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-1" title="Close Drawer">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Dynamic Quick Suggestion Chips (Changes by Active Role) -->
+    <div id="chat-quick-chips" class="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2 no-scrollbar">
+      <!-- Injected via JS based on current role -->
+    </div>
+
+    <!-- Messages Container -->
+    <div id="chat-messages-container" class="flex-1 overflow-y-auto space-y-2.5 pr-1 text-xs">
+      <!-- Populated via JS -->
+    </div>
+
+    <!-- Chat Input Form -->
+    <form onsubmit="handleSendChat(event)" class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex gap-2">
+      <input type="text" id="chat-input" placeholder="Ask about balances, transfers, cards, or policies..." class="input-clean text-xs flex-1" autocomplete="off">
+      <button type="submit" class="btn-primary py-2 px-3 text-xs">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </form>
+  </div>
+
+  <!-- =========================================================================
+       4. MODALS (Fund Transfer, Open Account, My Cards, Apply Loan, Receipt)
+       ========================================================================= -->
+
+  <!-- Modal: Fund Transfer -->
+  <div id="transfer-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fas fa-paper-plane text-[#00B074]"></i> Send Digital Money
+        </h3>
+        <button onclick="closeTransferModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-sm">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleExecuteTransfer(event)" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Transfer Network</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-center cursor-pointer hover:border-[#00B074] transition">
+              <input type="radio" name="transfer-channel" value="INTERNAL" checked class="hidden">
+              <div class="font-bold text-[#00B074]">Internal</div>
+              <div class="text-[10px] text-slate-400">Zero Fee</div>
+            </label>
+            <label class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-center cursor-pointer hover:border-[#00B074] transition">
+              <input type="radio" name="transfer-channel" value="ACH" class="hidden">
+              <div class="font-bold text-slate-800 dark:text-slate-200">ACH</div>
+              <div class="text-[10px] text-slate-400">Clearing</div>
+            </label>
+            <label class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-center cursor-pointer hover:border-[#00B074] transition">
+              <input type="radio" name="transfer-channel" value="SWIFT" class="hidden">
+              <div class="font-bold text-sky-500">SWIFT</div>
+              <div class="text-[10px] text-slate-400">Global Wire</div>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">From Account</label>
+          <select id="transfer-source-acc" class="input-clean font-medium">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Recipient Name</label>
+            <input type="text" id="transfer-recipient-name" placeholder="John Doe or Business" class="input-clean" required>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Destination Account Number</label>
+            <input type="text" id="transfer-dest-acc" placeholder="UB-CHK-2026-XXXX" class="input-clean font-mono font-bold" required>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Amount ($ USD)</label>
+          <input type="number" id="transfer-amount" step="0.01" min="1" placeholder="100.00" class="input-clean font-mono font-bold text-base" required>
+          <p class="text-[10px] text-amber-600 dark:text-amber-400 mt-1 font-medium">
+            <i class="fas fa-info-circle mr-1"></i> Single transfers $\ge \$10,000$ securely queue for Manager dual-control authorization.
+          </p>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Note / Reference</label>
+          <input type="text" id="transfer-desc" placeholder="Invoice settlement or personal allowance" class="input-clean">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" onclick="closeTransferModal()" class="btn-secondary">Cancel</button>
+          <button type="submit" class="btn-primary">
+            Send Money Now
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Open New Account -->
+  <div id="open-account-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fas fa-vault text-[#00B074]"></i> Open Additional Account
+        </h3>
+        <button onclick="closeOpenAccountModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-sm">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleCreateAccountSubmit(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Account Display Name</label>
+          <input type="text" id="new-acc-name" placeholder="e.g. Vacation Savings or Tax Reserve" class="input-clean" required>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Account Type</label>
+          <select id="new-acc-type" class="input-clean font-medium">
+            <option value="Primary Checking">Primary Checking (Zero maintenance fee)</option>
+            <option value="High-Yield Savings">High-Yield Wealth Vault (4.85% APY)</option>
+            <option value="Investment Portfolio">Strategic Investment Reserve</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Initial Opening Balance ($ USD)</label>
+          <input type="number" id="new-acc-deposit" class="input-clean font-mono font-bold" value="500" min="50" step="50" required>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" onclick="closeOpenAccountModal()" class="btn-secondary">Cancel</button>
+          <button type="submit" class="btn-primary">Provision Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Cards Management -->
+  <div id="cards-modal" class="modal-overlay">
+    <div class="modal-content max-w-lg">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fas fa-credit-card text-sky-500"></i> Payment Cards & Controls
+        </h3>
+        <button onclick="closeCardsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-sm">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div id="cards-list-container" class="space-y-4 text-xs">
+        <!-- Injected dynamically via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Apply Loan -->
+  <div id="loan-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fas fa-hand-holding-dollar text-purple-500"></i> Apply for Credit Facility
+        </h3>
+        <button onclick="closeLoanModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-sm">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleApplyLoan(event)" class="space-y-3.5 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Borrower Legal Name</label>
+            <input type="text" id="loan-borrower-name" class="input-clean" required>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Email</label>
+            <input type="email" id="loan-borrower-email" class="input-clean" required>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Facility Type</label>
+            <select id="loan-type-select" class="input-clean font-medium">
+              <option value="Personal Fintech Credit">Personal Fintech Credit</option>
+              <option value="Small Business Growth">Small Business Growth</option>
+              <option value="Green Energy Fleet Loan">Green Energy Fleet</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Amount ($ USD)</label>
+            <input type="number" id="loan-principal" step="1000" min="1000" value="25000" class="input-clean font-mono font-bold" required>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Term</label>
+            <select id="loan-term" class="input-clean font-medium">
+              <option value="24">24 Months</option>
+              <option value="36" selected>36 Months</option>
+              <option value="60">60 Months</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Monthly Income ($)</label>
+            <input type="number" id="loan-income" value="18500" class="input-clean font-mono" required>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Facility Purpose</label>
+          <input type="text" id="loan-purpose" value="Business expansion or home inventory" class="input-clean" required>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" onclick="closeLoanModal()" class="btn-secondary">Cancel</button>
+          <button type="submit" class="btn-primary">
+            Calculate Score & Apply
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Digital Printable Receipt Voucher -->
+  <div id="receipt-modal" class="modal-overlay">
+    <div class="modal-content max-w-sm">
+      <div class="receipt-paper text-slate-900" id="receipt-printable-content">
+        <!-- Logo & Header -->
+        <div class="text-center pb-3 border-b border-dashed border-slate-300">
+          <div class="w-8 h-8 rounded-full bg-[#00B074] text-white flex items-center justify-center mx-auto mb-1 text-sm font-bold">
+            <i class="fas fa-check"></i>
+          </div>
+          <h2 class="font-extrabold text-sm tracking-tight text-slate-900">UNITYBANK RECEIPT</h2>
+          <p class="text-[10px] text-slate-500 font-medium">Official Digital Transaction Voucher</p>
+          <span id="receipt-offline-tag" class="hidden text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 mt-1 inline-block">
+            Offline Authenticated
+          </span>
+        </div>
+
+        <!-- Amount & Status -->
+        <div class="text-center py-4 border-b border-dashed border-slate-300">
+          <div class="text-2xl font-black font-mono tracking-tight" id="receipt-amount">$0.00</div>
+          <div class="text-[10px] uppercase tracking-wider font-bold text-emerald-600 mt-0.5" id="receipt-status">SUCCESSFUL</div>
+        </div>
+
+        <!-- Details -->
+        <div class="py-3 space-y-1.5 text-[11px]">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Reference:</span>
+            <span class="font-mono font-bold" id="receipt-ref">UB-TXN-XXXX</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Date & Time:</span>
+            <span id="receipt-time">2026-10-18 09:00:00</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Operation:</span>
+            <span class="font-bold" id="receipt-channel">Internal Transfer</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Recipient / Target:</span>
+            <span class="font-bold text-right" id="receipt-recipient">Recipient Name</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Account:</span>
+            <span class="font-mono" id="receipt-account">UB-CHK-2026-XXXX</span>
+          </div>
+        </div>
+
+        <!-- Cryptographic Signature -->
+        <div class="pt-3 border-t border-dashed border-slate-300 text-center">
+          <div class="text-[9px] text-slate-400 font-mono tracking-wider" id="receipt-sig">SIG-SEC-TAMPER-PROOF</div>
+          <div class="text-[9px] text-slate-400 mt-1">Validated by SQLite Consensus Ledger</div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-4 pt-2">
+        <button onclick="closeReceiptModal()" class="btn-secondary text-xs py-1.5 px-3">Close</button>
+        <button onclick="window.print()" class="btn-primary text-xs py-1.5 px-3">
+          <i class="fas fa-print mr-1"></i> Print Voucher
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Offline Sync Queue Inspector -->
+  <div id="offline-queue-modal" class="modal-overlay">
+    <div class="modal-content max-w-lg">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fas fa-cloud-arrow-up text-amber-500"></i> Local Storage Offline Sync Queue
+        </h3>
+        <button onclick="closeOfflineQueueModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-sm">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <p class="text-slate-500">
+          Transactions stored locally in browser SQLite/LocalStorage during Offline Mode. When connected, click below to sync directly to cloud ledger.
+        </p>
+
+        <div class="max-h-60 overflow-y-auto space-y-2" id="offline-queue-list">
+          <!-- Populated via JS -->
+        </div>
+
+        <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button onclick="clearOfflineQueue()" class="btn-secondary text-rose-500 text-xs py-1.5 px-3">Clear Queue</button>
+          <div class="flex gap-2">
+            <button onclick="closeOfflineQueueModal()" class="btn-secondary text-xs py-1.5 px-3">Cancel</button>
+            <button onclick="triggerOfflineSync()" class="btn-primary text-xs py-1.5 px-3">
+              <i class="fas fa-sync-alt mr-1"></i> Sync All to Core
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Application Logic JavaScript -->
+  <script src="js/app.js"></script>
+</body>
+</html>

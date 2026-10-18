@@ -1,0 +1,22 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\OpenWithChrome]
+@="Open with Chrome"
+"Icon"="\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\",0"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\OpenWithChrome\command]
+@="cmd.exe /c if exist \"%1\\frontend\\index.html\" (start \"\" \"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" \"%1\\frontend\\index.html\") else (start \"\" \"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" \"%1\")"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\OpenWithChrome]
+@="Open with Chrome"
+"Icon"="\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\",0"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\OpenWithChrome\command]
+@="cmd.exe /c if exist \"%V\\frontend\\index.html\" (start \"\" \"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" \"%V\\frontend\\index.html\") else (start \"\" \"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" \"%V\")"
+
+[HKEY_CURRENT_USER\Software\Classes\Folder\shell\OpenWithChrome]
+@="Open with Chrome"
+"Icon"="\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\",0"
+
+[HKEY_CURRENT_USER\Software\Classes\Folder\shell\OpenWithChrome\command]
+@="cmd.exe /c if exist \"%1\\frontend\\index.html\" (start \"\" \"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" \"%1\\frontend\\index.html\") else (start \"\" \"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" \"%1\")"
