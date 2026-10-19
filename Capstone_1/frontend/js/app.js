@@ -360,7 +360,10 @@ async function handleRegisterSubmit(e) {
     showToast(data.message, 'success', 'Account Registered');
     enterAppWorkspace();
   } catch (err) {
-    showAuthAlert(err.message, true);
+    const message = err.name === 'TypeError' || (err.message || '').toLowerCase().includes('failed to fetch')
+      ? 'Cannot connect to the backend. Start FastAPI on http://127.0.0.1:8000, then refresh this page and try again.'
+      : err.message;
+    showAuthAlert(message, true);
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<span>Create Account & Provision Profile</span> <i class="fas fa-check text-xs"></i>';
