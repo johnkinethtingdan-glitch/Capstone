@@ -232,10 +232,26 @@ async function handleLoginSubmit(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
-    const data = await res.json();
+    // Read the response as text first so HTML/server errors do not cause an
+    // unhelpful "Unexpected token <" JSON parsing error.
+    const responseText = await res.text();
+    let data;
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      throw new Error(
+        res.ok
+          ? 'The server returned an invalid response. Please check that the backend API is running.'
+          : `Login request failed (HTTP ${res.status}). The server did not return valid JSON.`
+      );
+    }
 
     if (!res.ok || data.status !== 'success') {
-      throw new Error(data.detail || 'Login authentication failed.');
+      const detail = data.detail;
+      const message = Array.isArray(detail)
+        ? detail.map(item => item.msg || JSON.stringify(item)).join(', ')
+        : (typeof detail === 'string' ? detail : 'Login authentication failed.');
+      throw new Error(message);
     }
 
     state.token = data.token;
