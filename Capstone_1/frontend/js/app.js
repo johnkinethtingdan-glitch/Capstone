@@ -332,10 +332,25 @@ async function handleRegisterSubmit(e) {
         initial_deposit
       })
     });
-    const data = await res.json();
+    // Parse safely: empty or non-JSON responses should show a useful error.
+    const responseText = await res.text();
+    let data;
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      throw new Error(
+        res.ok
+          ? 'The server returned an empty or invalid response. Make sure the backend API is running.'
+          : `Registration failed (HTTP ${res.status}). The server did not return valid JSON.`
+      );
+    }
 
     if (!res.ok || data.status !== 'success') {
-      throw new Error(data.detail || 'Registration failed.');
+      const detail = data.detail;
+      const message = Array.isArray(detail)
+        ? detail.map(item => item.msg || JSON.stringify(item)).join(', ')
+        : (typeof detail === 'string' ? detail : 'Registration failed.');
+      throw new Error(message);
     }
 
     state.token = data.token;
