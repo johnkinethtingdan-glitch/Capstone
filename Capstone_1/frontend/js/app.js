@@ -6,14 +6,40 @@
 
 // Live Server (port 5500) serves only the frontend; FastAPI runs on port 8000.
 // When the frontend is served by FastAPI itself, keep using the same-origin API.
+const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 const isLocalFrontendServer =
-  ['localhost', '127.0.0.1'].includes(window.location.hostname) &&
-  ['5500', '5501', '5502'].includes(window.location.port);
+  isLocalHost &&
+  window.location.port !== '8000' &&
+  window.location.port !== '';
 
 const API_BASE =
-  (window.location.protocol === 'file:' || !window.location.origin || window.location.origin === 'null' || isLocalFrontendServer)
+  (window.location.protocol === 'file:' ||
+   !window.location.origin ||
+   window.location.origin === 'null' ||
+   isLocalFrontendServer)
     ? 'http://127.0.0.1:8000/api/v1'
     : '/api/v1';
+
+async function readApiResponse(response, actionLabel) {
+  const responseText = await response.text();
+  let data;
+  try {
+    data = responseText ? JSON.parse(responseText) : {};
+  } catch {
+    throw new Error(
+      `${actionLabel} failed: the API returned an invalid response (HTTP ${response.status}). Check that the FastAPI backend is running at http://127.0.0.1:8000.`
+    );
+  }
+
+  if (!response.ok || data.status === 'error') {
+    const detail = data.detail || data.message;
+    const message = Array.isArray(detail)
+      ? detail.map(item => item.msg || JSON.stringify(item)).join(', ')
+      : (typeof detail === 'string' ? detail : `${actionLabel} failed (HTTP ${response.status}).`);
+    throw new Error(message);
+  }
+  return data;
+}
 
 function loadOfflineQueue() {
   const storageKey = 'ub_offline_queue';
@@ -239,26 +265,9 @@ async function handleLoginSubmit(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
-    // Read the response as text first so HTML/server errors do not cause an
-    // unhelpful "Unexpected token <" JSON parsing error.
-    const responseText = await res.text();
-    let data;
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      throw new Error(
-        res.ok
-          ? 'The server returned an invalid response. Please check that the backend API is running.'
-          : `Login request failed (HTTP ${res.status}). The server did not return valid JSON.`
-      );
-    }
-
-    if (!res.ok || data.status !== 'success') {
-      const detail = data.detail;
-      const message = Array.isArray(detail)
-        ? detail.map(item => item.msg || JSON.stringify(item)).join(', ')
-        : (typeof detail === 'string' ? detail : 'Login authentication failed.');
-      throw new Error(message);
+    const data = await readApiResponse(res, 'Login');
+    if (data.status !== 'success' || !data.token || !data.user) {
+      throw new Error('Login failed: the server response is missing session information.');
     }
 
     state.token = data.token;
@@ -339,25 +348,9 @@ async function handleRegisterSubmit(e) {
         initial_deposit
       })
     });
-    // Parse safely: empty or non-JSON responses should show a useful error.
-    const responseText = await res.text();
-    let data;
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      throw new Error(
-        res.ok
-          ? 'The server returned an empty or invalid response. Make sure the backend API is running.'
-          : `Registration failed (HTTP ${res.status}). The server did not return valid JSON.`
-      );
-    }
-
-    if (!res.ok || data.status !== 'success') {
-      const detail = data.detail;
-      const message = Array.isArray(detail)
-        ? detail.map(item => item.msg || JSON.stringify(item)).join(', ')
-        : (typeof detail === 'string' ? detail : 'Registration failed.');
-      throw new Error(message);
+    const data = await readApiResponse(res, 'Registration');
+    if (data.status !== 'success' || !data.token || !data.user) {
+      throw new Error('Registration failed: the server response is missing session information.');
     }
 
     state.token = data.token;
