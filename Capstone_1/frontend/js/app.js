@@ -4,9 +4,16 @@
  * Fully RBAC-enabled, Offline/Online sync capable, Offline AI integrated
  */
 
-const API_BASE = (window.location.protocol === 'file:' || !window.location.origin || window.location.origin === 'null')
-  ? 'http://127.0.0.1:8000/api/v1'
-  : '/api/v1';
+// Live Server (port 5500) serves only the frontend; FastAPI runs on port 8000.
+// When the frontend is served by FastAPI itself, keep using the same-origin API.
+const isLocalFrontendServer =
+  ['localhost', '127.0.0.1'].includes(window.location.hostname) &&
+  ['5500', '5501', '5502'].includes(window.location.port);
+
+const API_BASE =
+  (window.location.protocol === 'file:' || !window.location.origin || window.location.origin === 'null' || isLocalFrontendServer)
+    ? 'http://127.0.0.1:8000/api/v1'
+    : '/api/v1';
 
 function loadOfflineQueue() {
   const storageKey = 'ub_offline_queue';
